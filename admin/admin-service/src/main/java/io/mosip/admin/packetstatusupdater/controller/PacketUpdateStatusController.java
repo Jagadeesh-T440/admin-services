@@ -3,6 +3,7 @@ package io.mosip.admin.packetstatusupdater.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -48,5 +49,24 @@ public class PacketUpdateStatusController {
 		responseWrapper.setResponse(packetUpdateStatusService.getStatus(rId, langCode));
 		auditUtil.setAuditRequestDto(EventEnum.getEventEnumWithValue(EventEnum.PKT_STATUS_UPD_SUCCESS, rId),null);
 		return responseWrapper;
+	}
+	
+	/**
+	 * Validate packet.
+	 *
+	 * @param rId the r id
+	 * @return the response wrapper
+	 */
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getGetpacketstatusupdate())")
+	@PostMapping(value = { "/resumePacket" }, consumes = { "multipart/form-data" })
+	//@PreAuthorize("hasAnyRole('ZONAL_ADMIN','GLOBAL_ADMIN')")
+	public ResponseWrapper<PacketStatusUpdateResponseDto> resumePacket(@RequestParam(value = "rid") String rId,
+			@RequestParam(value = "langCode", required = false) String langCode) {
+		auditUtil.setAuditRequestDto(EventEnum.getEventEnumWithValue(EventEnum.PKT_STATUS_UPD_API_CALLED, rId), null);
+	    ResponseWrapper<PacketStatusUpdateResponseDto> responseWrapper = new ResponseWrapper<>();
+	    responseWrapper.setResponse(packetUpdateStatusService.updatePacketResume(rId, langCode));
+	    auditUtil.setAuditRequestDto(EventEnum.getEventEnumWithValue(EventEnum.PKT_STATUS_UPD_SUCCESS, rId), null);
+	    return responseWrapper;
+		
 	}
 }
