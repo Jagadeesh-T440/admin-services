@@ -57,9 +57,7 @@ public class PacketUpdateStatusController {
 	 * @param rId the r id
 	 * @return the response wrapper
 	 */
-	@PreAuthorize("hasAnyRole(@authorizedRoles.getGetpacketstatusupdate())")
 	@PostMapping(value = { "/resumePacket" }, consumes = { "multipart/form-data" })
-	//@PreAuthorize("hasAnyRole('ZONAL_ADMIN','GLOBAL_ADMIN')")
 	public ResponseWrapper<PacketStatusUpdateResponseDto> resumePacket(@RequestParam(value = "rid") String rId,
 			@RequestParam(value = "langCode", required = false) String langCode) {
 		auditUtil.setAuditRequestDto(EventEnum.getEventEnumWithValue(EventEnum.PKT_STATUS_UPD_API_CALLED, rId), null);
