@@ -108,7 +108,7 @@ public class PacketStatusUpdateServiceImpl implements PacketStatusUpdateService 
 	 * setResumePacket(java.lang.String)
 	 */
 	@Override
-	public PacketStatusUpdateResponseDto updatePacketResume(String rId, String langCode) {
+	public PacketStatusUpdateResponseDto updatePacket(String rId, String langCode) {
 		auditUtil.setAuditRequestDto(EventEnum.PACKET_STATUS,null);
 		return updatePacketResume(rId);
 	}
@@ -180,18 +180,15 @@ public class PacketStatusUpdateServiceImpl implements PacketStatusUpdateService 
 	        UriComponentsBuilder urlBuilder = UriComponentsBuilder.fromUriString(packetResumeUpdateUrl)
 					.path(rId);
 	        logger.info("Calling Regproc API: {}", urlBuilder.toUriString());
-	        ResponseEntity<String> response = restTemplate.postForEntity(urlBuilder.build().toUri(), entity, String.class);
+	        ResponseEntity<String> response = restTemplate.postForEntity(urlBuilder.toUriString(), entity, String.class);
+	        logger.info("RegProc raw response: {}", response.getBody());
 	        if (response.getStatusCode().is2xxSuccessful()) {
-	            List<PacketStatusUpdateDto> packetStatusUpdateDtos = getPacketResponse(ArrayList.class, response.getBody());
-	            PacketStatusUpdateResponseDto regProcPacketStatusRequestDto = new PacketStatusUpdateResponseDto();
-	            List<PacketStatusUpdateDto> packStautsDto = objectMapper.convertValue(
-	                packetStatusUpdateDtos, new TypeReference<List<PacketStatusUpdateDto>>() {});
-	            packStautsDto.sort(createdDateTimesResultComparator);
-	            setStatusMessage(packStautsDto);
-	            regProcPacketStatusRequestDto.setPacketStatusUpdateList(packStautsDto);
-	            packStautsDto.forEach(pcksts ->
-	                auditUtil.setAuditRequestDto(EventEnum.getEventEnumBasedOnPAcketStatus(pcksts), null)
+	            ResponseWrapper<String> wrapper = objectMapper.readValue(response.getBody(),
+	                new TypeReference<ResponseWrapper<String>>() {}
 	            );
+	            String regprocMessage = wrapper.getResponse();
+	            PacketStatusUpdateResponseDto regProcPacketStatusRequestDto = new PacketStatusUpdateResponseDto();
+	            regProcPacketStatusRequestDto.setMessage(regprocMessage);
 	            return regProcPacketStatusRequestDto;
 	        }
 	    } catch (RequestException e) {
@@ -207,6 +204,7 @@ public class PacketStatusUpdateServiceImpl implements PacketStatusUpdateService 
 	        PacketStatusUpdateErrorCode.PACKET_FETCH_EXCEPTION.getErrorMessage()
 	    );
 	}
+
 
 	/**
 	 * Gets the packet response.

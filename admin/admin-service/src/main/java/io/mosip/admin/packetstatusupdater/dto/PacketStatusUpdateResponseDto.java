@@ -9,4 +9,5 @@ public class PacketStatusUpdateResponseDto {
 
 	/** The packet status update list. */
 	private List<PacketStatusUpdateDto> packetStatusUpdateList;
+	private String message;
 }

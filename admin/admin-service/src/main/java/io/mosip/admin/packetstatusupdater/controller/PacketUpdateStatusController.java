@@ -62,7 +62,7 @@ public class PacketUpdateStatusController {
 			@RequestParam(value = "langCode", required = false) String langCode) {
 		auditUtil.setAuditRequestDto(EventEnum.getEventEnumWithValue(EventEnum.PKT_STATUS_UPD_API_CALLED, rId), null);
 	    ResponseWrapper<PacketStatusUpdateResponseDto> responseWrapper = new ResponseWrapper<>();
-	    responseWrapper.setResponse(packetUpdateStatusService.updatePacketResume(rId, langCode));
+	    responseWrapper.setResponse(packetUpdateStatusService.updatePacket(rId, langCode));
 	    auditUtil.setAuditRequestDto(EventEnum.getEventEnumWithValue(EventEnum.PKT_STATUS_UPD_SUCCESS, rId), null);
 	    return responseWrapper;
 		

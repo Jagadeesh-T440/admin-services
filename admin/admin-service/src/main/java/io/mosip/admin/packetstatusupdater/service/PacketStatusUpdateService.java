@@ -18,5 +18,5 @@ public interface PacketStatusUpdateService {
 	 */
 	public PacketStatusUpdateResponseDto getStatus(String rid, String langCode);
 	
-	public PacketStatusUpdateResponseDto updatePacketResume(String rid, String langCode);
+	public PacketStatusUpdateResponseDto updatePacket(String rid, String langCode);
 }
