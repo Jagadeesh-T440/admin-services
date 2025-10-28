@@ -179,7 +179,7 @@ public class PacketStatusUpdateServiceImpl implements PacketStatusUpdateService 
 	        HttpEntity<Void> entity = new HttpEntity<>(headers);
 	        UriComponentsBuilder urlBuilder = UriComponentsBuilder.fromUriString(packetResumeUpdateUrl)
 					.path(rId);
-	        logger.info("Regproc api: " + packetResumeUpdateUrl);
+	        logger.info("Calling Regproc API: {}", urlBuilder.toUriString());
 	        ResponseEntity<String> response = restTemplate.postForEntity(urlBuilder.build().toUri(), entity, String.class);
 	        if (response.getStatusCode().is2xxSuccessful()) {
 	            List<PacketStatusUpdateDto> packetStatusUpdateDtos = getPacketResponse(ArrayList.class, response.getBody());
