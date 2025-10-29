@@ -3,12 +3,15 @@ package io.mosip.admin.packetstatusupdater.service.impl;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +23,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.admin.packetstatusupdater.constant.PacketStatusUpdateErrorCode;
+import io.mosip.admin.packetstatusupdater.dto.PacketResumeUpdateResponseDto;
 import io.mosip.admin.packetstatusupdater.dto.PacketStatusUpdateDto;
 import io.mosip.admin.packetstatusupdater.dto.PacketStatusUpdateResponseDto;
 import io.mosip.admin.packetstatusupdater.exception.MasterDataServiceException;
@@ -51,6 +55,10 @@ public class PacketStatusUpdateServiceImpl implements PacketStatusUpdateService 
 	/** The packet update status url. */
 	@Value("${mosip.kernel.packet-status-update-url}")
 	private String packetUpdateStatusUrl;
+	
+	/** The packet update status url. */
+	@Value("${mosip.admin.packet-resume-update-url}")
+	private String packetResumeUpdateUrl;
 
 	/** The zone validation url. */
 	@Value("${mosip.kernel.zone-validation-url}")
@@ -92,6 +100,18 @@ public class PacketStatusUpdateServiceImpl implements PacketStatusUpdateService 
 		//Any Packet status can be viewed from any admin from any center
 		auditUtil.setAuditRequestDto(EventEnum.PACKET_STATUS,null);
 		return getPacketStatus(rId);
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see io.mosip.admin.packetstatusupdater.service.PacketStatusUpdateService#
+	 * setResumePacket(java.lang.String)
+	 */
+	@Override
+	public PacketResumeUpdateResponseDto updatePacket(String rId, String langCode) {
+		auditUtil.setAuditRequestDto(EventEnum.PACKET_STATUS,null);
+		return updatePacketResume(rId);
 	}
 
 	/**
@@ -143,6 +163,47 @@ public class PacketStatusUpdateServiceImpl implements PacketStatusUpdateService 
 		auditUtil.setAuditRequestDto(EventEnum.getEventEnumWithValue(EventEnum.PACKET_STATUS_ERROR,rId),null);
 		throw new RequestException(PacketStatusUpdateErrorCode.PACKET_FETCH_EXCEPTION.getErrorCode(),
 				PacketStatusUpdateErrorCode.PACKET_FETCH_EXCEPTION.getErrorMessage());
+	}
+
+	/**
+	 * Gets the packet status.
+	 *
+	 * @param rId
+	 *            the r id
+	 * @return the packet resumed
+	 */
+	@SuppressWarnings({ "unchecked" })
+	private PacketResumeUpdateResponseDto updatePacketResume(String rId) {
+	    try {
+	        HttpHeaders headers = new HttpHeaders();
+	        headers.setContentType(MediaType.APPLICATION_JSON);
+	        HttpEntity<Void> entity = new HttpEntity<>(headers);
+	        UriComponentsBuilder urlBuilder = UriComponentsBuilder.fromUriString(packetResumeUpdateUrl)
+					.path(rId);
+	        logger.info("Calling Regproc API: {}", urlBuilder.toUriString());
+	        ResponseEntity<String> response = restTemplate.postForEntity(urlBuilder.toUriString(), entity, String.class);
+	        logger.info("RegProc raw response: {}", response.getBody());
+	        if (response.getStatusCode().is2xxSuccessful()) {
+	            ResponseWrapper<String> wrapper = objectMapper.readValue(response.getBody(),
+	                new TypeReference<ResponseWrapper<String>>() {}
+	            );
+	            String regprocMessage = wrapper.getResponse();
+	            PacketResumeUpdateResponseDto regProcPacketStatusRequestDto = new PacketResumeUpdateResponseDto();
+	            regProcPacketStatusRequestDto.setMessage(regprocMessage);
+	            return regProcPacketStatusRequestDto;
+	        }
+	    } catch (RequestException e) {
+	        logger.error("SESSIONID", "ADMIN-SERVICE", "ADMIN-SERVICE", e.getMessage() + ExceptionUtils.getStackTrace(e));
+	        throw e;
+	    } catch (Exception e) {
+	        logger.error("SESSIONID", "ADMIN-SERVICE", "ADMIN-SERVICE", e.getMessage() + ExceptionUtils.getStackTrace(e));
+	        throw new MasterDataServiceException(PacketStatusUpdateErrorCode.PACKET_FETCH_EXCEPTION.getErrorCode(),
+	            PacketStatusUpdateErrorCode.PACKET_FETCH_EXCEPTION.getErrorMessage(),e);
+	    }
+	    auditUtil.setAuditRequestDto(EventEnum.getEventEnumWithValue(EventEnum.PACKET_STATUS_ERROR, rId), null);
+	    throw new RequestException(PacketStatusUpdateErrorCode.PACKET_FETCH_EXCEPTION.getErrorCode(),
+	        PacketStatusUpdateErrorCode.PACKET_FETCH_EXCEPTION.getErrorMessage()
+	    );
 	}
 
 
