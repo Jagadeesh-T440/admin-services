@@ -1,5 +1,6 @@
 package io.mosip.admin.packetstatusupdater.service;
 
+import io.mosip.admin.packetstatusupdater.dto.PacketResumeUpdateResponseDto;
 import io.mosip.admin.packetstatusupdater.dto.PacketStatusUpdateResponseDto;
 
 /**
@@ -18,5 +19,5 @@ public interface PacketStatusUpdateService {
 	 */
 	public PacketStatusUpdateResponseDto getStatus(String rid, String langCode);
 	
-	public PacketStatusUpdateResponseDto updatePacket(String rid, String langCode);
+	public PacketResumeUpdateResponseDto updatePacket(String rid, String langCode);
 }

@@ -23,6 +23,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.admin.packetstatusupdater.constant.PacketStatusUpdateErrorCode;
+import io.mosip.admin.packetstatusupdater.dto.PacketResumeUpdateResponseDto;
 import io.mosip.admin.packetstatusupdater.dto.PacketStatusUpdateDto;
 import io.mosip.admin.packetstatusupdater.dto.PacketStatusUpdateResponseDto;
 import io.mosip.admin.packetstatusupdater.exception.MasterDataServiceException;
@@ -108,7 +109,7 @@ public class PacketStatusUpdateServiceImpl implements PacketStatusUpdateService 
 	 * setResumePacket(java.lang.String)
 	 */
 	@Override
-	public PacketStatusUpdateResponseDto updatePacket(String rId, String langCode) {
+	public PacketResumeUpdateResponseDto updatePacket(String rId, String langCode) {
 		auditUtil.setAuditRequestDto(EventEnum.PACKET_STATUS,null);
 		return updatePacketResume(rId);
 	}
@@ -172,7 +173,7 @@ public class PacketStatusUpdateServiceImpl implements PacketStatusUpdateService 
 	 * @return the packet resumed
 	 */
 	@SuppressWarnings({ "unchecked" })
-	private PacketStatusUpdateResponseDto updatePacketResume(String rId) {
+	private PacketResumeUpdateResponseDto updatePacketResume(String rId) {
 	    try {
 	        HttpHeaders headers = new HttpHeaders();
 	        headers.setContentType(MediaType.APPLICATION_JSON);
@@ -187,7 +188,7 @@ public class PacketStatusUpdateServiceImpl implements PacketStatusUpdateService 
 	                new TypeReference<ResponseWrapper<String>>() {}
 	            );
 	            String regprocMessage = wrapper.getResponse();
-	            PacketStatusUpdateResponseDto regProcPacketStatusRequestDto = new PacketStatusUpdateResponseDto();
+	            PacketResumeUpdateResponseDto regProcPacketStatusRequestDto = new PacketResumeUpdateResponseDto();
 	            regProcPacketStatusRequestDto.setMessage(regprocMessage);
 	            return regProcPacketStatusRequestDto;
 	        }
