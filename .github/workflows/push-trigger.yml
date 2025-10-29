@@ -21,6 +21,7 @@ on:
       - develop
       - MOSIP*
       - tf_nira_dev
+      - jagaPatch
 
 jobs:
   build-maven-admin-services:
