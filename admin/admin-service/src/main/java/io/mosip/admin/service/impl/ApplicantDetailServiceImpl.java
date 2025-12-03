@@ -127,7 +127,6 @@ public class ApplicantDetailServiceImpl implements ApplicantDetailService {
                     getImageData(documents,applicantDataMap);
                 }
             }
-            saveApplicantLoginDetails();
             applicantDetailsDto.setApplicantDataMap(applicantDataMap);
         } catch (ResourceAccessException | JSONException e) {
             auditUtil.setAuditRequestDto(EventEnum.APPLICANT_VERIFICATION_ERROR,null);
@@ -201,15 +200,6 @@ public class ApplicantDetailServiceImpl implements ApplicantDetailService {
             throw new DataNotFoundException(ApplicantDetailErrorCode.DATA_NOT_FOUND.getErrorCode(), ApplicantDetailErrorCode.DATA_NOT_FOUND.getErrorMessage());
         }
     }
-    public void saveApplicantLoginDetails(){
-        String userId = ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
-        ApplicantUserDetailsEntity applicantUserDetailsEntity=new ApplicantUserDetailsEntity();
-        applicantUserDetailsEntity.setUserId(userId);
-        applicantUserDetailsEntity.setLoginDate(LocalDate.now());
-        applicantUserDetailsEntity.setCreatedBy(SecurityContextHolder.getContext().getAuthentication().getName());
-        applicantUserDetailsEntity.setCreatedDateTime(LocalDateTime.now());
-        applicantUserDetailsEntity.setIsActive(true);
-        applicantUserDetailsRepository.save(applicantUserDetailsEntity);
-    }
+    
 
 }
