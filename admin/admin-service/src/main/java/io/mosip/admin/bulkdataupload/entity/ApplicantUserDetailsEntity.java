@@ -2,15 +2,9 @@ package io.mosip.admin.bulkdataupload.entity;
 
 import lombok.Data;
 import org.hibernate.annotations.GenericGenerator;
-
+import javax.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDate;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Table;
 
 @Data
 @Entity
