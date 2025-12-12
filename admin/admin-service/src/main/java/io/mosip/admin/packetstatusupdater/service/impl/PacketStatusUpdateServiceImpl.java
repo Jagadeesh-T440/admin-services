@@ -8,8 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import javax.smartcardio.Card;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -244,11 +242,10 @@ public class PacketStatusUpdateServiceImpl implements PacketStatusUpdateService 
 	        ResponseEntity<String> response = restTemplate.postForEntity(urlBuilder.toUriString(), entity, String.class);
 	        logger.info("RegProc raw response: {}", response.getBody());
 	        if (response.getStatusCode().is2xxSuccessful()) {
-	            String regprocMessage = response.getBody();  // direct string
-	            PacketSendToPersoResponseDto dto = new PacketSendToPersoResponseDto();
-	            dto.setMessage(regprocMessage);
-	            return dto;
-	        }
+                PacketSendToPersoResponseDto dto = new PacketSendToPersoResponseDto();
+                dto.setMessage(response.getBody());
+                return dto;
+            }
 	    } catch (RequestException e) {
 	        logger.error("SESSIONID", "ADMIN-SERVICE", "ADMIN-SERVICE", e.getMessage() + ExceptionUtils.getStackTrace(e));
 	        throw e;
