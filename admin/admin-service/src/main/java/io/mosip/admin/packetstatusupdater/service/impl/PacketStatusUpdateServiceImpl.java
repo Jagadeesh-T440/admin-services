@@ -244,13 +244,10 @@ public class PacketStatusUpdateServiceImpl implements PacketStatusUpdateService 
 	        ResponseEntity<String> response = restTemplate.postForEntity(urlBuilder.toUriString(), entity, String.class);
 	        logger.info("RegProc raw response: {}", response.getBody());
 	        if (response.getStatusCode().is2xxSuccessful()) {
-	            ResponseWrapper<String> wrapper = objectMapper.readValue(response.getBody(),
-	                new TypeReference<ResponseWrapper<String>>() {}
-	            );
-	            String regprocMessage = wrapper.getResponse();
-	            PacketSendToPersoResponseDto regProcPacketStatusRequestDto = new PacketSendToPersoResponseDto();
-	            regProcPacketStatusRequestDto.setMessage(regprocMessage);
-	            return regProcPacketStatusRequestDto;
+	            String regprocMessage = response.getBody();  // direct string
+	            PacketSendToPersoResponseDto dto = new PacketSendToPersoResponseDto();
+	            dto.setMessage(regprocMessage);
+	            return dto;
 	        }
 	    } catch (RequestException e) {
 	        logger.error("SESSIONID", "ADMIN-SERVICE", "ADMIN-SERVICE", e.getMessage() + ExceptionUtils.getStackTrace(e));
