@@ -21,7 +21,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
+import io.mosip.admin.packetstatusupdater.dto.PacketSendToPersoResponseDto;
 import io.mosip.admin.packetstatusupdater.constant.PacketStatusUpdateErrorCode;
 import io.mosip.admin.packetstatusupdater.dto.PacketResumeUpdateResponseDto;
 import io.mosip.admin.packetstatusupdater.dto.PacketStatusUpdateDto;
@@ -60,6 +60,10 @@ public class PacketStatusUpdateServiceImpl implements PacketStatusUpdateService 
 	@Value("${mosip.admin.packet-resume-update-url}")
 	private String packetResumeUpdateUrl;
 
+	/** The packet send card to perso. */
+	@Value("${mosip.admin.packet-send-to-perso-url}")
+	private String packetSendToPerso;
+	
 	/** The zone validation url. */
 	@Value("${mosip.kernel.zone-validation-url}")
 	private String zoneValidationUrl;
@@ -114,6 +118,18 @@ public class PacketStatusUpdateServiceImpl implements PacketStatusUpdateService 
 		return updatePacketResume(rId);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see io.mosip.admin.packetstatusupdater.service.PacketStatusUpdateService#
+	 * sent packet to perso(java.lang.String)
+	 */
+	@Override
+	public PacketSendToPersoResponseDto sentPacketCardToPerso(String rId, String langCode) {
+		auditUtil.setAuditRequestDto(EventEnum.PACKET_STATUS,null);
+		return sendPacket(rId);
+	}
+	
 	/**
 	 * Gets the packet status.
 	 *
@@ -206,6 +222,42 @@ public class PacketStatusUpdateServiceImpl implements PacketStatusUpdateService 
 	    );
 	}
 
+	/**
+	 * Gets the packet status.
+	 *
+	 * @param rId
+	 *            
+	 * @return the send packet to perso
+	 */
+	@SuppressWarnings({ "unchecked" })
+	private PacketSendToPersoResponseDto sendPacket(String rId) {
+	    try {
+	        HttpHeaders headers = new HttpHeaders();
+	        headers.setContentType(MediaType.APPLICATION_JSON);
+	        HttpEntity<Void> entity = new HttpEntity<>(headers);
+	        UriComponentsBuilder urlBuilder = UriComponentsBuilder.fromUriString(packetSendToPerso)
+					.path(rId);
+	        logger.info("Calling Regproc API: {}", urlBuilder.toUriString());
+	        ResponseEntity<String> response = restTemplate.postForEntity(urlBuilder.toUriString(), entity, String.class);
+	        logger.info("RegProc raw response: {}", response.getBody());
+	        if (response.getStatusCode().is2xxSuccessful()) {
+                PacketSendToPersoResponseDto dto = new PacketSendToPersoResponseDto();
+                dto.setMessage(response.getBody());
+                return dto;
+            }
+	    } catch (RequestException e) {
+	        logger.error("SESSIONID", "ADMIN-SERVICE", "ADMIN-SERVICE", e.getMessage() + ExceptionUtils.getStackTrace(e));
+	        throw e;
+	    } catch (Exception e) {
+	        logger.error("SESSIONID", "ADMIN-SERVICE", "ADMIN-SERVICE", e.getMessage() + ExceptionUtils.getStackTrace(e));
+	        throw new MasterDataServiceException(PacketStatusUpdateErrorCode.PACKET_FETCH_EXCEPTION.getErrorCode(),
+	            PacketStatusUpdateErrorCode.PACKET_FETCH_EXCEPTION.getErrorMessage(),e);
+	    }
+	    auditUtil.setAuditRequestDto(EventEnum.getEventEnumWithValue(EventEnum.PACKET_STATUS_ERROR, rId), null);
+	    throw new RequestException(PacketStatusUpdateErrorCode.PACKET_FETCH_EXCEPTION.getErrorCode(),
+	        PacketStatusUpdateErrorCode.PACKET_FETCH_EXCEPTION.getErrorMessage()
+	    );
+	}
 
 	/**
 	 * Gets the packet response.
