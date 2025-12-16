@@ -1,4 +1,4 @@
-# Admin Service
+## Admin Service
 Admin Service can be accessed only by the privileged group of admin personnel, its used to perform bulk data operation.
 
 ## Configuration files
