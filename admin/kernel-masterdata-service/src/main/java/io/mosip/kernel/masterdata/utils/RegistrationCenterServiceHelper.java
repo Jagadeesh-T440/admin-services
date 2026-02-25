@@ -3,6 +3,8 @@ package io.mosip.kernel.masterdata.utils;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
@@ -625,19 +627,90 @@ public class RegistrationCenterServiceHelper {
 	 * @param locations fetch the name of the holiday location name
 	 * @return true if successful
 	 */
-	private boolean setHolidayMetadata(RegistrationCenterSearchDto center, List<Location> locations) {
-		if (locations != null && !locations.isEmpty()) {
-			Optional<Location> location = locations.stream()
-					.filter(i -> center.getHolidayLocationCode().equals(i.getCode())
-							&& center.getLangCode().equals(i.getLangCode()))
-					.findFirst();
-			if (location.isPresent()) {
-				center.setHolidayLocation(location.get().getName());
-			}
-		}
-		return true;
+	private static final Logger logger = LoggerFactory.getLogger(RegistrationCenterServiceHelper.class);
 
+	private boolean setHolidayMetadata(RegistrationCenterSearchDto center, List<Location> locations) {
+		logger.info("setHolidayMetadata >> START | centerId={} | name={} | holidayLocationCode={} | langCode={}",
+				center.getId(),
+				center.getName(),
+				center.getHolidayLocationCode(),
+				center.getLangCode());
+
+		if (center.getHolidayLocationCode() == null) {
+			logger.warn("setHolidayMetadata >> SKIPPED | centerId={} | reason=holidayLocationCode is NULL",
+					center.getId());
+			return true;
+		}
+
+		if (center.getLangCode() == null) {
+			logger.warn("setHolidayMetadata >> SKIPPED | centerId={} | reason=langCode is NULL",
+					center.getId());
+			return true;
+		}
+
+		if (locations == null || locations.isEmpty()) {
+			logger.warn("setHolidayMetadata >> SKIPPED | centerId={} | reason=locations list is NULL or EMPTY",
+					center.getId());
+			return true;
+		}
+
+		logger.debug("setHolidayMetadata >> SEARCHING | centerId={} | totalLocations={} | lookingFor: code={} langCode={}",
+				center.getId(),
+				locations.size(),
+				center.getHolidayLocationCode(),
+				center.getLangCode());
+
+		try {
+			Optional<Location> location = locations.stream()
+					.filter(i -> {
+						logger.debug("setHolidayMetadata >> FILTER CHECK | centerId={} | location.code={} | location.langCode={}",
+								center.getId(),
+								i.getCode(),
+								i.getLangCode());
+						return center.getHolidayLocationCode().equals(i.getCode())
+								&& center.getLangCode().equals(i.getLangCode());
+					})
+					.findFirst();
+
+			if (location.isPresent()) {
+				logger.info("setHolidayMetadata >> MATCH FOUND | centerId={} | holidayLocation={}",
+						center.getId(),
+						location.get().getName());
+				center.setHolidayLocation(location.get().getName());
+			} else {
+				logger.warn("setHolidayMetadata >> NO MATCH | centerId={} | holidayLocationCode={} | langCode={} | no location matched",
+						center.getId(),
+						center.getHolidayLocationCode(),
+						center.getLangCode());
+			}
+
+		} catch (NullPointerException e) {
+			logger.error("setHolidayMetadata >> NPE CAUGHT | centerId={} | holidayLocationCode={} | langCode={} | locationsSize={}",
+					center.getId(),
+					center.getHolidayLocationCode(),
+					center.getLangCode(),
+					locations.size(),
+					e);
+			return false;
+		}
+
+		logger.info("setHolidayMetadata >> END | centerId={}", center.getId());
+		return true;
 	}
+
+//	private boolean setHolidayMetadata(RegistrationCenterSearchDto center, List<Location> locations) {
+//		if (locations != null && !locations.isEmpty()) {
+//			Optional<Location> location = locations.stream()
+//					.filter(i -> center.getHolidayLocationCode().equals(i.getCode())
+//							&& center.getLangCode().equals(i.getLangCode()))
+//					.findFirst();
+//			if (location.isPresent()) {
+//				center.setHolidayLocation(location.get().getName());
+//			}
+//		}
+//		return true;
+//
+//	}
 
 	public void validateRegistrationCenterZone(String zoneCode, String regCenterId) {
 		List<Zone> subZones = zoneUtils.getSubZonesBasedOnZoneCode(zoneCode);
