@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.mosip.admin.packetstatusupdater.dto.PacketResumeUpdateResponseDto;
+import io.mosip.admin.packetstatusupdater.dto.PacketSendToPersoResponseDto;
 import io.mosip.admin.packetstatusupdater.dto.PacketStatusUpdateResponseDto;
 import io.mosip.admin.packetstatusupdater.service.PacketStatusUpdateService;
 import io.mosip.admin.packetstatusupdater.util.AuditUtil;
@@ -66,6 +67,25 @@ public class PacketUpdateStatusController {
 		auditUtil.setAuditRequestDto(EventEnum.getEventEnumWithValue(EventEnum.PKT_STATUS_UPD_API_CALLED, rId), null);
 	    ResponseWrapper<PacketResumeUpdateResponseDto> responseWrapper = new ResponseWrapper<>();
 	    responseWrapper.setResponse(packetUpdateStatusService.updatePacket(rId, langCode));
+	    auditUtil.setAuditRequestDto(EventEnum.getEventEnumWithValue(EventEnum.PKT_STATUS_UPD_SUCCESS, rId), null);
+	    return responseWrapper;
+		
+	}
+	
+	/**
+	 * Validate packet.
+	 *
+	 * @param rId the r id
+	 * @return the response wrapper
+	 */
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getGetpacketstatusupdate())")
+	@PostMapping(value = { "/sentToPerso" }, consumes = { "multipart/form-data" })
+	//@PreAuthorize("hasAnyRole('ZONAL_ADMIN','GLOBAL_ADMIN')")
+	public ResponseWrapper<PacketSendToPersoResponseDto> sentPacketCardToPerso(@RequestParam(value = "rid") String rId,
+			@RequestParam(value = "langCode", required = false) String langCode) {
+		auditUtil.setAuditRequestDto(EventEnum.getEventEnumWithValue(EventEnum.PKT_STATUS_UPD_API_CALLED, rId), null);
+	    ResponseWrapper<PacketSendToPersoResponseDto> responseWrapper = new ResponseWrapper<>();
+	    responseWrapper.setResponse(packetUpdateStatusService.sentPacketCardToPerso(rId, langCode));
 	    auditUtil.setAuditRequestDto(EventEnum.getEventEnumWithValue(EventEnum.PKT_STATUS_UPD_SUCCESS, rId), null);
 	    return responseWrapper;
 		
