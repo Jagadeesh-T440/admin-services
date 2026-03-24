@@ -2,7 +2,7 @@ package io.mosip.kernel.masterdata.service;
 
 import java.io.InputStream;
 
-public interface FileService {
+public interface FileDownloadService {
 
     InputStream downloadZip() throws Exception;
 }

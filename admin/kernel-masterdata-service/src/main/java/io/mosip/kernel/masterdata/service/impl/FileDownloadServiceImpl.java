@@ -1,6 +1,6 @@
 package io.mosip.kernel.masterdata.service.impl;
 
-import io.mosip.kernel.masterdata.service.FileService;
+import io.mosip.kernel.masterdata.service.FileDownloadService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -9,9 +9,9 @@ import java.net.URL;
 import java.net.URLConnection;
 
 @Service
-public class FileServiceImpl implements FileService {
+public class FileDownloadServiceImpl implements FileDownloadService {
 
-    @Value("${file.download.url}")
+    @Value("${mosip.kernel.biosdk.file.url}")
     private String fileUrl;
 
     @Override

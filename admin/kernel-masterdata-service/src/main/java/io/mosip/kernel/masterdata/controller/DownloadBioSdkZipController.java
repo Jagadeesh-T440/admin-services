@@ -7,21 +7,21 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import io.mosip.kernel.masterdata.service.FileService;
+import io.mosip.kernel.masterdata.service.FileDownloadService;
 
 import java.io.InputStream;
 
 @RestController
-@RequestMapping("/api/files")
+@RequestMapping("/download")
 public class DownloadBioSdkZipController {
 
     @Autowired
-    private FileService fileService;
+    private FileDownloadService fileDownloadService;
 
-    @GetMapping("/download")
+    @GetMapping("/bio-sdk")
     public ResponseEntity<InputStreamResource> downloadFile() throws Exception {
 
-        InputStream inputStream = fileService.downloadZip();
+        InputStream inputStream = fileDownloadService.downloadZip();
         
         if (inputStream == null) {
             return ResponseEntity.notFound().build();
