@@ -1,14 +1,12 @@
 package io.mosip.kernel.masterdata.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import io.mosip.kernel.masterdata.service.FileDownloadService;
-
+import java.io.OutputStream;
 import java.io.InputStream;
+
+import javax.servlet.http.HttpServletResponse;
 
 @RestController
 @RequestMapping("/download")
@@ -18,28 +16,29 @@ public class DownloadBioSdkZipController {
     private FileDownloadService fileDownloadService;
 
     @GetMapping("/bio-sdk")
-    public ResponseEntity<StreamingResponseBody> downloadFile() throws Exception {
+    public void downloadFile(HttpServletResponse response) throws Exception {
 
         InputStream inputStream = fileDownloadService.downloadZip();
+
         if (inputStream == null) {
-            return ResponseEntity.notFound().build();
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            return;
         }
 
-        StreamingResponseBody stream = outputStream -> {
-            byte[] buffer = new byte[1024 * 1024];
-            int bytesRead;
+        response.setContentType("application/octet-stream");
+        response.setHeader("Content-Disposition", "attachment; filename=bio-sdk.zip");
 
-            try (inputStream) {
-                while ((bytesRead = inputStream.read(buffer)) != -1) {
-                    outputStream.write(buffer, 0, bytesRead);
-                    outputStream.flush();
-                }
+        byte[] buffer = new byte[1024 * 1024]; // 1MB buffer
+        int bytesRead;
+
+        try (InputStream in = inputStream;
+             OutputStream out = response.getOutputStream()) {
+
+            while ((bytesRead = in.read(buffer)) != -1) {
+                out.write(buffer, 0, bytesRead);
             }
-        };
 
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=bio-sdk.zip")
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .body(stream);
+            out.flush();
+        }
     }
 }
