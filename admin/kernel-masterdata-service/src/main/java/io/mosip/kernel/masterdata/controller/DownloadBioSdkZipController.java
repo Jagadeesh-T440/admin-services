@@ -27,12 +27,13 @@ public class DownloadBioSdkZipController {
 
         response.setContentType("application/octet-stream");
         response.setHeader("Content-Disposition", "attachment; filename=bio-sdk.zip");
+        response.setBufferSize(1024 * 1024);
 
-        byte[] buffer = new byte[1024 * 1024]; // 1MB buffer
+        byte[] buffer = new byte[1024 * 1024];
         int bytesRead;
 
-        try (InputStream in = inputStream;
-             OutputStream out = response.getOutputStream()) {
+        try (InputStream in = new java.io.BufferedInputStream(inputStream);
+             OutputStream out = new java.io.BufferedOutputStream(response.getOutputStream())) {
 
             while ((bytesRead = in.read(buffer)) != -1) {
                 out.write(buffer, 0, bytesRead);

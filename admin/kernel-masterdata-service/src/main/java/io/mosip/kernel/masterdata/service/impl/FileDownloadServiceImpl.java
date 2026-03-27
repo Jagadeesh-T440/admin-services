@@ -21,7 +21,6 @@ public class FileDownloadServiceImpl implements FileDownloadService {
         URLConnection connection = url.openConnection();
 
         connection.setConnectTimeout(60000);
-        connection.setReadTimeout(1800000);
 
         return connection.getInputStream();
     }
