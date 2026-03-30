@@ -1,12 +1,18 @@
 package io.mosip.kernel.masterdata.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import io.mosip.kernel.masterdata.service.FileDownloadService;
-import java.io.OutputStream;
-import java.io.InputStream;
 
-import javax.servlet.http.HttpServletResponse;
+import io.mosip.kernel.masterdata.service.FileDownloadService;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.net.URLConnection;
 
 @RestController
 @RequestMapping("/download")
@@ -16,29 +22,29 @@ public class DownloadBioSdkZipController {
     private FileDownloadService fileDownloadService;
 
     @GetMapping("/bio-sdk")
-    public void downloadFile(HttpServletResponse response) throws Exception {
-
-        InputStream inputStream = fileDownloadService.downloadZip();
-
-        if (inputStream == null) {
-            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            return;
-        }
-
-        response.setContentType("application/octet-stream");
-        response.setHeader("Content-Disposition", "attachment; filename=bio-sdk.zip");
-
-        byte[] buffer = new byte[1024 * 1024]; // 1MB buffer
-        int bytesRead;
-
-        try (InputStream in = inputStream;
-             OutputStream out = response.getOutputStream()) {
-
-            while ((bytesRead = in.read(buffer)) != -1) {
-                out.write(buffer, 0, bytesRead);
+    public ResponseEntity<?> downloadFile() {
+        try {
+            URLConnection connection = fileDownloadService.getFileConnection();
+            InputStream inputStream = connection.getInputStream();
+            if (inputStream == null) {
+                return ResponseEntity.notFound().build();
             }
 
-            out.flush();
+            long fileSize = connection.getContentLengthLong();
+            InputStreamResource resource = new InputStreamResource(inputStream);
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=bio-sdk.zip")
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .contentLength(fileSize > 0 ? fileSize : -1)
+                    .body(resource);
+        } catch (Exception e) {
+            e.printStackTrace();
+            String errorMessage = "Download failed: " + e.getMessage();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)	
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .body(new InputStreamResource(
+                            new ByteArrayInputStream(errorMessage.getBytes())
+                    ));
         }
     }
 }
