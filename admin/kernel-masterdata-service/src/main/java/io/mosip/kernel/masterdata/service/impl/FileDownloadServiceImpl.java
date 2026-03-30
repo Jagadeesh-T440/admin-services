@@ -3,8 +3,6 @@ package io.mosip.kernel.masterdata.service.impl;
 import io.mosip.kernel.masterdata.service.FileDownloadService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
-import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 
@@ -15,13 +13,13 @@ public class FileDownloadServiceImpl implements FileDownloadService {
     private String fileUrl;
 
     @Override
-    public InputStream downloadZip() throws Exception {
+    public URLConnection getFileConnection() throws Exception {
 
         URL url = new URL(fileUrl);
         URLConnection connection = url.openConnection();
 
         connection.setConnectTimeout(60000);
 
-        return connection.getInputStream();
+        return connection;
     }
 }
