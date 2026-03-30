@@ -1,6 +1,5 @@
 package io.mosip.kernel.masterdata.service;
 
-import java.io.InputStream;
 import java.net.URLConnection;
 
 public interface FileDownloadService {
