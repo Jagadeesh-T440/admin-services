@@ -1,8 +1,8 @@
 package io.mosip.kernel.masterdata.service;
 
-import java.net.URLConnection;
+import java.io.InputStream;
 
 public interface FileDownloadService {
 
-    URLConnection getFileConnection() throws Exception;
+	InputStream downloadZip() throws Exception;
 }
