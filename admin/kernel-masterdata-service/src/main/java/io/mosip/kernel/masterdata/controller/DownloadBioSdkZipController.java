@@ -7,8 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import io.mosip.kernel.masterdata.service.FileDownloadService;
+import io.mosip.kernel.masterdata.service.impl.FileDownloadServiceImpl;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -19,7 +18,7 @@ import java.net.URLConnection;
 public class DownloadBioSdkZipController {
 
     @Autowired
-    private FileDownloadService fileDownloadService;
+    private FileDownloadServiceImpl fileDownloadService;
 
     @GetMapping("/bio-sdk")
     public ResponseEntity<?> downloadFile() {
