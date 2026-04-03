@@ -68,6 +68,8 @@ import io.mosip.kernel.masterdata.utils.MetaDataUtils;
 import io.mosip.kernel.masterdata.utils.PageUtils;
 import io.mosip.kernel.masterdata.validator.FilterColumnValidator;
 import io.mosip.kernel.masterdata.validator.FilterTypeValidator;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import io.mosip.kernel.masterdata.dto.DynamicFieldCodeValueDTO;
 
 @Service
 public class DynamicFieldServiceImpl implements DynamicFieldService {
@@ -516,19 +518,20 @@ public class DynamicFieldServiceImpl implements DynamicFieldService {
 			DynamicFieldConsolidateResponseDto dto = new DynamicFieldConsolidateResponseDto();
 			dto.setDescription(lst.get(0).getDescription());
 			dto.setName(lst.get(0).getName());
-			dto.setJsonValues(null);
+			List<DynamicFieldCodeValueDTO> dtolist = new ArrayList<DynamicFieldCodeValueDTO>();
 			if (withValue == true) {
 
 				List<JSONObject> l = new ArrayList<>();
 				for (int i = 0; i < lst.size(); i++) {
 					l.add(new JSONObject(lst.get(i).getValueJson()));
+					dtolist.add(objectMapper.readValue(lst.get(i).getValueJson(),DynamicFieldCodeValueDTO.class));
 				}
-				dto.setJsonValues(new JSONArray(l));
+				dto.setValues(dtolist);
 			}
 
 			return dto;
 
-		} catch (DataAccessLayerException | DataAccessException | JSONException  e) {
+		} catch (DataAccessLayerException | DataAccessException | JSONException | JsonProcessingException e) {
 			throw new MasterDataServiceException(SchemaErrorCode.DYNAMIC_FIELD_FETCH_EXCEPTION.getErrorCode(),
 					ExceptionUtils.parseException(e));
 		}
