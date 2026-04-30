@@ -1,7 +1,6 @@
-package io.mosip.admin.httpfilter;
+package io.mosip.kernel.masterdata.httpfilter;
 
 import java.io.IOException;
-
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -14,8 +13,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.util.ContentCachingResponseWrapper;
 
-import io.mosip.admin.config.LoggerConfiguration;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.masterdata.config.LoggerConfiguration;
 
 public class ReqResFilter implements Filter {
 
@@ -30,23 +29,32 @@ public class ReqResFilter implements Filter {
 
 		HttpServletRequest httpServletRequest = (HttpServletRequest) request;
 		HttpServletResponse httpServletResponse = (HttpServletResponse) response;
+		String uri = httpServletRequest.getRequestURI();
+
+		// FIX: Add your download path to the exclusion list
+		// This prevents the filter from trying to load the 800MB file into RAM
+		if (uri.endsWith(".stream") || uri.contains("/download/bio-sdk")) {
+			chain.doFilter(request, response);
+			return;
+		}
+
 		ContentCachingRequestWrapper requestWrapper = null;
 		ContentCachingResponseWrapper responseWrapper = null;
 
 		try {
-			if (httpServletRequest.getRequestURI().endsWith(".stream")) {
-				chain.doFilter(request, response);
-				return;
-			}
 			requestWrapper = new ContentCachingRequestWrapper(httpServletRequest);
 			responseWrapper = new ContentCachingResponseWrapper(httpServletResponse);
+
 			chain.doFilter(requestWrapper, responseWrapper);
-//			System.out.println("Request : " + new String(requestWrapper.getContentAsByteArray(),"UTF-8"));
-//			System.out.println("Response : " + new String(responseWrapper.getContentAsByteArray(),"UTF-8"));
+
+			// This is where the memory crash happens for large files if not excluded
 			responseWrapper.copyBodyToResponse();
 		} catch (Exception e) {
 			Logger mosipLogger = LoggerConfiguration.logConfig(ReqResFilter.class);
 			mosipLogger.error("", "", "", e.getMessage());
+			if (!httpServletResponse.isCommitted()) {
+				httpServletResponse.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			}
 		}
 	}
 
