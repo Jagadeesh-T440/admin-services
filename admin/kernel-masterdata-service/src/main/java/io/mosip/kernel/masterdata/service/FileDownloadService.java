@@ -1,8 +1,8 @@
 package io.mosip.kernel.masterdata.service;
 
-import java.io.InputStream;
+import java.nio.file.Path;
 
 public interface FileDownloadService {
 
-	InputStream downloadZip() throws Exception;
+	Path downloadZip() throws Exception;
 }
