@@ -99,7 +99,7 @@ public class PacketUpdateStatusController {
 	 * @return the response wrapper
 	 */
 	@PreAuthorize("hasAnyRole(@authorizedRoles.getGetpacketstatusupdate())")
-	@GetMapping(value = { "/manual-verification" }, consumes = { "multipart/form-data" })
+	@GetMapping(value = { "/manual-verification" })
 	public ResponseWrapper<PacketMatchedMaResponseDto> getMatchedPacket(@RequestParam(value = "rid") String rId,
 			@RequestParam(value = "langCode", required = false) String langCode) {
 		auditUtil.setAuditRequestDto(EventEnum.getEventEnumWithValue(EventEnum.PKT_STATUS_UPD_API_CALLED, rId), null);
