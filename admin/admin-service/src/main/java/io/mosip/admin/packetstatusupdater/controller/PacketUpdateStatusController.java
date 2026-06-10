@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import io.mosip.admin.packetstatusupdater.dto.PacketMatchedMaResponseDto;
 import io.mosip.admin.packetstatusupdater.dto.PacketSendToPersoResponseDto;
 import io.mosip.admin.packetstatusupdater.dto.PacketResumeUpdateResponseDto;
 import io.mosip.admin.packetstatusupdater.dto.PacketStatusUpdateResponseDto;
@@ -88,6 +89,24 @@ public class PacketUpdateStatusController {
 	    auditUtil.setAuditRequestDto(EventEnum.getEventEnumWithValue(EventEnum.PKT_STATUS_UPD_SUCCESS, rId), null);
 	    return responseWrapper;
 
+	}
+	
+	/**
+	 * Get MA match RID.
+	 *
+	 * @param rId the r id
+	 * @return the response wrapper
+	 */
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getGetpacketstatusupdate())")
+	@GetMapping(value = { "/manual-verification" })
+	public ResponseWrapper<PacketMatchedMaResponseDto> getMatchedPacket(@RequestParam(value = "rid") String rId,
+			@RequestParam(value = "langCode", required = false) String langCode) {
+		auditUtil.setAuditRequestDto(EventEnum.getEventEnumWithValue(EventEnum.PKT_STATUS_UPD_API_CALLED, rId), null);
+	    ResponseWrapper<PacketMatchedMaResponseDto> responseWrapper = new ResponseWrapper<>();
+	    responseWrapper.setResponse(packetUpdateStatusService.getMatchedPacket(rId, langCode));
+	    auditUtil.setAuditRequestDto(EventEnum.getEventEnumWithValue(EventEnum.PKT_STATUS_UPD_SUCCESS, rId), null);
+	    return responseWrapper;
+		
 	}
 }
 
