@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import io.mosip.admin.packetstatusupdater.dto.PacketMatchedMaResponseDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -63,6 +64,10 @@ public class PacketStatusUpdateServiceImpl implements PacketStatusUpdateService 
 	/** The packet send card to perso. */
 	@Value("${mosip.admin.packet-send-to-perso-url}")
 	private String packetSendToPerso;
+
+	/** The packet send card to perso. */
+	@Value("${mosip.admin.packet-matched-ma-url}")
+	private String packetMatchedMaUrl;
 	
 	/** The zone validation url. */
 	@Value("${mosip.kernel.zone-validation-url}")
@@ -128,6 +133,18 @@ public class PacketStatusUpdateServiceImpl implements PacketStatusUpdateService 
 	public PacketSendToPersoResponseDto sentPacketCardToPerso(String rId, String langCode) {
 		auditUtil.setAuditRequestDto(EventEnum.PACKET_STATUS,null);
 		return sendPacket(rId);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see io.mosip.admin.packetstatusupdater.service.PacketStatusUpdateService#
+	 * get matched ma packet(java.lang.String)
+	 */
+	@Override
+	public PacketMatchedMaResponseDto getMatchedPacket(String rId, String langCode) {
+		auditUtil.setAuditRequestDto(EventEnum.PACKET_STATUS,null);
+		return getMatchedPacket(rId);
 	}
 	
 	/**
@@ -244,6 +261,43 @@ public class PacketStatusUpdateServiceImpl implements PacketStatusUpdateService 
                 PacketSendToPersoResponseDto dto = new PacketSendToPersoResponseDto();
                 dto.setMessage(response.getBody());
                 return dto;
+            }
+	    } catch (RequestException e) {
+	        logger.error("SESSIONID", "ADMIN-SERVICE", "ADMIN-SERVICE", e.getMessage() + ExceptionUtils.getStackTrace(e));
+	        throw e;
+	    } catch (Exception e) {
+	        logger.error("SESSIONID", "ADMIN-SERVICE", "ADMIN-SERVICE", e.getMessage() + ExceptionUtils.getStackTrace(e));
+	        throw new MasterDataServiceException(PacketStatusUpdateErrorCode.PACKET_FETCH_EXCEPTION.getErrorCode(),
+	            PacketStatusUpdateErrorCode.PACKET_FETCH_EXCEPTION.getErrorMessage(),e);
+	    }
+	    auditUtil.setAuditRequestDto(EventEnum.getEventEnumWithValue(EventEnum.PACKET_STATUS_ERROR, rId), null);
+	    throw new RequestException(PacketStatusUpdateErrorCode.PACKET_FETCH_EXCEPTION.getErrorCode(),
+	        PacketStatusUpdateErrorCode.PACKET_FETCH_EXCEPTION.getErrorMessage()
+	    );
+	}
+
+	
+	/**
+	 * Gets the Matched MA packets.
+	 *
+	 * @param rId
+	 *            
+	 * @return the send packet to perso
+	 */
+	@SuppressWarnings({ "unchecked" })
+	private PacketMatchedMaResponseDto getMatchedPacket(String rId) {
+	    try {
+        	ObjectMapper mapper = new ObjectMapper();
+	        HttpHeaders headers = new HttpHeaders();
+	        headers.setContentType(MediaType.APPLICATION_JSON);
+	        UriComponentsBuilder urlBuilder = UriComponentsBuilder.fromUriString(packetMatchedMaUrl)
+					.path(rId);
+	        ResponseEntity<String> response = restTemplate.getForEntity(urlBuilder.toUriString(), String.class);
+	        if (response.getStatusCode().is2xxSuccessful()) {
+	        	List<String> result = mapper.readValue(response.getBody(), List.class);
+	        	PacketMatchedMaResponseDto dto = new PacketMatchedMaResponseDto();
+	        	dto.setMessage(result);
+	        	return dto;
             }
 	    } catch (RequestException e) {
 	        logger.error("SESSIONID", "ADMIN-SERVICE", "ADMIN-SERVICE", e.getMessage() + ExceptionUtils.getStackTrace(e));
